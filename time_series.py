@@ -1,29 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
-
-def odes(t, Z, parms):
-    # Unpack the states, preallocate ODE evaluations. 
-    H, F, I = Z
-    ODEs = [0,0,0]
-    
-    # Fill in ODEs 
-    E = parm['gamma']*(F + parm['p']*I)/(parm['a']*H + F + parm['p']*I + parm['w']) * (1 - F/parm['K'])
-    S = parm['sigma']*(H - parm['c']*F*(1 + parm['p']*I/(F + parm['y'])))
-    ODEs[0] = E*H - S
-    ODEs[1] = S - parm['beta']*F - parm['mu']*F
-    ODEs[2] = parm['beta']*F - parm['nu']*I
-
-    return ODEs
+from bee_model import simulate
 
 # Define model parameters. 
 parm = {}
-parm['gamma'] = 0.05; parm['K'] = 10**4
-parm['c'] = 2.7; parm['sigma'] = 0.25 # ???
+parm['gamma'] = 0.03; parm['K_expn'] = 4
+parm['c'] = 2.7; parm['sigma'] = 0.25
 parm['mu'] = 0.136
-parm['w'] = 10**(-3); parm['y'] = 10**(-3)
-parm['p'] = 0; parm['beta'] = 0; parm['nu'] = 0
-parm['b'] = 0.99; parm['a'] = (1 - parm['b'])/(parm['c']*parm['b'])
+parm['w_expn'] = -6; parm['y_expn'] = -6
+parm['p'] = 0; parm['beta'] = 0.4; parm['nu'] = parm['mu']
+parm['b'] = 0.95; parm['a'] = (1 - parm['b'])/(parm['c']*parm['b'])
 
 # Solve the IVP.
-Z = solve_ivp(fun=odes, t_span=[0, 1825], t_eval=[365, 1825], y0=[100, 30, 0], args=(parm,))
+tsol = np.linspace(0,18000,10000)
+Z = simulate(tsol, [3500, 500, 500], parm, system = "autonomous")
+plt.plot(tsol, Z.y[0,:], label='H')
+plt.plot(tsol, Z.y[1,:], label='F')
+plt.plot(tsol, Z.y[2,:], label='I')
+plt.legend()
+plt.show()

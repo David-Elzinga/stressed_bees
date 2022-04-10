@@ -38,7 +38,7 @@ def worker(obj):
 def main(pool):
 
     # Make our LHS
-    n=1000
+    n=10000
     LHS = qmc.LatinHypercube(d=8)
     parm_list = LHS.random(n)
     l_bounds = [0.001, 3, 0.8*0.25, 2.16, 0.116, -7, -7, 0.8]
@@ -92,9 +92,9 @@ def main(pool):
             [r'$\gamma$', r'$\log_{10}(K)$', r'$\sigma$', r'$c$', r'$\mu$', r'$\log_{10}(w)$', r'$\log_{10}(y)$', r'$b$'], fontsize=15, rotation=45)
     plt.legend(fontsize=15)
     plt.hlines(y=0,xmin=0,xmax=8, color='k')
+    plt.savefig("lhs.pdf",bbox_inches='tight')
 
     import pdb; pdb.set_trace()
-
     
     
 if __name__ == '__main__':
