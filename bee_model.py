@@ -13,8 +13,9 @@ def simulate(tsol, init_cond, parm, system):
         E = parm['gamma']*(F + parm['p']*I)/(parm['a']*H + F + parm['p']*I + 10**parm['w_expn']) * (1 - F/(10**parm['K_expn']))
         S = parm['sigma']*(H - parm['c']*F*(1 + parm['p']*I/(F + 10**parm['y_expn'])))
         ODEs[0] = E*H - S
-        ODEs[1] = S - parm['beta']*F - parm['mu']*F
-        ODEs[2] = parm['beta']*F - parm['nu']*I
+        ODEs[1] = S - parm['beta']*F - parm['mu']*F + parm['rho']*I
+        ODEs[2] = parm['beta']*F - parm['nu']*I - parm['rho']*I
+        
         return ODEs
 
     def nonautonomous_odes(t, Z, parm):
@@ -24,12 +25,11 @@ def simulate(tsol, init_cond, parm, system):
         
         # Fill in ODEs
         parm['a'] = (1 - parm['b'])/(parm['c']*parm['b']) # Define a in this case as b changes.  
-        E = parm['gamma']*(F + parm['p']*I)/(parm['a']*H + F + parm['p']*I + 10**parm['w_expn']) * (1 - F/(10**parm['K_expn'] + 10**(3.9)*np.cos(np.pi*(t%180-30)/150)))
-        #print(F/(10**parm['K_expn'] + 10**(3.9)*np.cos(np.pi*(t%180-30)/150)))
+        E = parm['gamma']*(F + parm['p']*I)/(parm['a']*H + F + parm['p']*I + 10**parm['w_expn']) * (1 - F/(10**parm['K_expn'] + 10**(3.5)*np.cos(np.pi*(t%180-30)/150)))
         S = parm['sigma']*(H - parm['c']*F*(1 + parm['p']*I/(F + 10**parm['y_expn'])))
         ODEs[0] = E*H - S
-        ODEs[1] = S - parm['beta']*F - parm['mu']*F
-        ODEs[2] = parm['beta']*F - parm['nu']*I
+        ODEs[1] = S - parm['beta']*F - parm['mu']*F + parm['rho']*I
+        ODEs[2] = parm['beta']*F - parm['nu']*I - parm['rho']*I
         return ODEs
     
     if system == 'autonomous':
