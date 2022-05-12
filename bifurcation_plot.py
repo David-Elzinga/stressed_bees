@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 
 K = 10**4; mu = 0.136
 sigma = 0.25; c = 2.7
-b = 0.95; a = (1 - b)/(c*b)
+b = 0.95; a = (1 - b)/(c*b); rho = 0; nu = 2*mu
 gamma_crit = mu*(a + sigma/(mu + c*sigma))
 
 gamma = np.linspace(0,0.5,100)
-beta_crit = (gamma - 2*a*mu - sigma*(a*c+1) + np.sqrt(gamma**2 + 2*gamma*sigma*(a*c - 1) + sigma**2*(a*c + 1)**2))/(2*a)
+beta_crit = (1 + rho/nu)*(gamma - 2*a*mu - sigma*(a*c+1) + np.sqrt(gamma**2 + 2*gamma*sigma*(a*c - 1) + sigma**2*(a*c + 1)**2))/(2*a)
 
 plt.axvline(x=gamma_crit, color='black', linestyle='--', label=r'$\gamma = \gamma^*$')
 plt.plot(gamma, beta_crit, 'k-', label=r'$\beta = \beta^*(\gamma)$')
