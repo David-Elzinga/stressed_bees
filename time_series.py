@@ -1,21 +1,39 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from bee_model import simulate
+from scipy.integrate import solve_ivp
+from bee_model import odes
+
+'''
+This script runs the model for a given set of parameters and plots 
+the time series.
+'''
 
 # Define model parameters. 
 parm = {}
-parm['gamma'] = 0.15; parm['K_expn'] = 4
-parm['c'] = 2.7; parm['sigma'] = 0.25
-parm['mu'] = 0.136
-parm['w_expn'] = -6; parm['y_expn'] = -6
-parm['p'] = 0; parm['beta'] = 0.4; parm['nu'] = parm['mu']; parm['rho'] = 0
-parm['b'] = 0.95; parm['a'] = (1 - parm['b'])/(parm['c']*parm['b'])
+parm['gamma'] = 0.08; parm['b'] = 0.95; parm['K_expn'] = 4; parm['w_expn'] = -6
+parm['c'] = 2.7; parm['sigma'] = 0.25; parm['y_expn'] = -6; parm['mu'] = 0.136
+parm['auto'] = True; parm['phi_expn'] = 3.5
 
-# Solve the IVP.
-tsol = np.linspace(0,18000,10000)
-Z = simulate(tsol, [3500, 500, 500], parm, system = "autonomous")
-plt.plot(tsol, Z.y[0,:], label='H')
-plt.plot(tsol, Z.y[1,:], label='F')
-plt.plot(tsol, Z.y[2,:], label='I')
-plt.legend()
+# These parameters dictate the stressor characteristics. 
+parm['p'] = 0; parm['beta'] = 0.05; parm['nu'] = 2*parm['mu']; parm['rho'] = 0
+parm['t0'] = 0; parm['t1'] = 180
+
+# Solve the IVP and plot. 
+num_years = 10; tsol = np.linspace(0, 180*num_years, num_years*100)
+[H, FU, FI] = solve_ivp(fun=odes, t_span=[tsol.min(), tsol.max()], t_eval=tsol, y0=[3500, 500, 500], args=(parm,)).y
+S = parm['sigma']*(H - parm['c']*FU*(1 + parm['p']*FI/(FU + 10**parm['y_expn'])));
+
+# Plot the time series
+fig, ax = plt.subplots(figsize=(5,15))
+ax.plot(tsol, H, label=r'$H$', linewidth=2)
+ax.plot(tsol, FU, label=r'$F_U$', linewidth=2)
+ax.plot(tsol, FI, label=r'$F_I$', linewidth=2)
+ax.set_xlabel(r'$t$ (Days)', fontsize=14); ax.set_ylabel('Bees', fontsize=14); ax.legend(fontsize=14)
+
+ax_twin = ax.twinx()
+ax_twin.plot(tsol, H/S, color='red', linestyle='-', linewidth=2)
+ax_twin.spines['right'].set_color('red'); ax_twin.tick_params(axis='y', colors='red')
+ax_twin.set_ylabel(r'AAOF', rotation=90, fontsize=14, labelpad=10, color='red')
+
+fig.subplots_adjust(right=0.8)
 plt.show()

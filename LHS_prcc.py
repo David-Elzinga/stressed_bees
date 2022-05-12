@@ -32,6 +32,9 @@ def worker(obj):
     Z = solve_ivp(fun=odes, t_span=[0, 1825], t_eval=[365, 1825], y0=[100, 30, 0], args=(parm,))
     pop_one = np.sum(Z.y,axis=0)[0]
     pop_five = np.sum(Z.y,axis=0)[1]
+    print(Z)
+    # exp_aaof_one = Z.y1/(S/H)
+    # exp_aaof_five = 
 
     return (pop_one, pop_five)
 
