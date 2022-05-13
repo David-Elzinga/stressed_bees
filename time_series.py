@@ -10,18 +10,18 @@ the time series.
 
 # Define model parameters. 
 parm = {}
-parm['gamma'] = 0.08; parm['b'] = 0.95; parm['K_expn'] = 4; parm['w_expn'] = -6
+parm['gamma'] = 0.15; parm['b'] = 0.95; parm['K_expn'] = 4; parm['w_expn'] = -6
 parm['c'] = 2.7; parm['sigma'] = 0.25; parm['y_expn'] = -6; parm['mu'] = 0.136
 parm['auto'] = True; parm['phi_expn'] = 3.5
 
 # These parameters dictate the stressor characteristics. 
-parm['p'] = 0; parm['beta'] = 0.05; parm['nu'] = 2*parm['mu']; parm['rho'] = 0
+parm['p'] = 0; parm['beta'] = 0.01; parm['nu'] = 100; parm['rho'] = 0.5
 parm['t0'] = 0; parm['t1'] = 180
 
 # Solve the IVP and plot. 
 num_years = 10; tsol = np.linspace(0, 180*num_years, num_years*100)
 [H, FU, FI] = solve_ivp(fun=odes, t_span=[tsol.min(), tsol.max()], t_eval=tsol, y0=[3500, 500, 500], args=(parm,)).y
-S = parm['sigma']*(H - parm['c']*FU*(1 + parm['p']*FI/(FU + 10**parm['y_expn'])));
+S = parm['sigma']*(H - parm['c']*FU*(1 + parm['p']*FI/(FU + 10**parm['y_expn'])))
 
 # Plot the time series
 fig, ax = plt.subplots(figsize=(5,15))

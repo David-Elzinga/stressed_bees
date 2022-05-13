@@ -1,63 +1,87 @@
-import numpy as np 
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from bee_model import simulate
+from matplotlib.lines import Line2D
 import multiprocessing
+import argparse
+import os
+from itertools import product
+from scipy.integrate import solve_ivp
+from bee_model import odes
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-n", "--ncores", type=int, help="number of cores", default=os.cpu_count() - 1)
 
 def worker(obj):
 
     # Define the parameters that are fixed for this realization. 
     parm = {}
-    parm['gamma'] = 0.15; parm['K_expn'] = 4
-    parm['sigma'] = 0.25; parm['c'] = 2.7
-    parm['mu'] = 0.136
-    parm['w_expn'] = -6; parm['y_expn'] = -6
-    parm['b'] = 0.95; parm['a'] = (1 - parm['b'])/(parm['c']*parm['b'])
+    parm['gamma'] = 0.15; parm['b'] = 0.95; parm['K_expn'] = 4; parm['w_expn'] = -6
+    parm['c'] = 2.7; parm['sigma'] = 0.25; parm['y_expn'] = -6; parm['mu'] = 0.136
+    parm['auto'] = True; parm['phi_expn'] = 3.5
+    parm['t0'] = 0; parm['t1'] = 180
 
-    # Unpack the stress params.
-    parm['beta'], parm['nu'], parm['p'] = obj
+    # Unpack the stress parameters.
+    parm['beta'], parm['nu'], parm['rho'], parm['p'] = obj
 
     # Solve the ODEs with these parameters. Record evaluations the terminal populations (after 10 years).
-    tsol = np.array([0, 365*10])
-    Z = simulate(tsol, [3000, 500, 0], parm, system = "autonomous")
-    term_pop = Z.y[:,-1].sum()
-    return term_pop
+    num_years = 5; tsol = np.linspace(0, 180*num_years, num_years*100)
+    [H, FU, FI] = solve_ivp(fun=odes, t_span=[tsol.min(), tsol.max()], t_eval=[tsol[-1]], y0=[200, 50, 0], args=(parm,)).y
+
+    return H + FU + FI
 
 def main(pool):
-    # Construct a grid of values for the stress parameters
-    n=50j; m = int(np.imag(n))
-    beta_vals, nu_vals = np.mgrid[0:3:n, 0:3:n]
-    beta_nu_grid = np.vstack([beta_vals.ravel(), nu_vals.ravel()]).T
 
-    # Iterate through p values. Create a contour object each time. Store the survival results. 
-    survival_results = []
-    for p_val, ls in zip([0, 0.25, 0.75, 1], ['solid', 'dotted', 'dashed', 'dashdot']):
-        print(p_val)
-        # Define the stress grid with beta, nu, and p defined for each parameter set. Run all parameter sets
-        stress_grid = np.append(beta_nu_grid, np.full((m*m,1), p_val), axis=1)
-        term_pop = pool.map(worker, stress_grid)
-        print(term_pop)
-        survival = np.array(term_pop).reshape(m,m) > 1 # a 1 indicates survival, a 0 indicates extn. 
-        survival_results.append(survival)
+    # Define ranges for stress parameters beta and nu.  
+    m = 100
+    beta_range = np.linspace(0, 3, m)
+    nu_range = np.linspace(0.01, 4.5, m)
+    p_range = [0, 0.25, 0.75, 1]
+    rho_range = [0, 0.5]
 
-        # Create a line on the graph that divides where term_pop > 1 bee and < 1 bee. 
-        CS = plt.contour(beta_vals, nu_vals, survival, levels = [0.5], colors=('black',), linestyles=(ls,), linewidths=(2,))
-        CS.collections[0].set_label(r'$p = $' + str(p_val))
+    # Create a dataframe to hold all parameter combinations. Simulate the model with these
+    # in parallel. Check for survival. 
+    df = pd.DataFrame(list(product(beta_range, nu_range, p_range, rho_range)), columns=['beta', 'nu', 'p', 'rho'])
+    print(df.shape)
+    df['term_pop'] = pool.map(worker, df.values)
+    df['survival'] = 1*(df['term_pop'] > 5)
 
-    plt.contourf(beta_vals, nu_vals, survival_results[0] | np.logical_not(survival_results[-1]), cmap=mpl.colors.ListedColormap(['lightgrey','white']))
- 
-    # Beautify the plots. 
-    plt.xlabel(r'$\beta$', fontsize=15); plt.ylabel(r'$\nu$', fontsize=15)
-    plt.text(0.01, 1, 'Persistence', rotation=0, fontsize=14)
-    plt.text(1.6, 1.9, 'Extinction', fontsize=14)
-    plt.legend(fontsize=10, loc='upper right')
-    plt.xlim(0,3); plt.ylim(0,3)
-    plt.savefig('stressor_comparison.pdf')
+    # Iterate through rho and p values to make plot.
+    fig, ax = plt.subplots(1,2, figsize=(15, 10)); survival_shading = []
+    for n, (rho, p, ls) in enumerate(zip([0]*4 + [0.5]*4, p_range*2, ['solid', 'dotted', 'dashed', 'dashdot']*2)):
 
-    plt.plot([2], [0.65], 'r.',markersize=20)
-    plt.savefig('stressor_comparison_dot.pdf')
-    plt.show()
+        # Subset data to this value of rho and p. 
+        x = df[(df['rho'] == rho) & (df['p'] == p)].beta.values.reshape(m,m)
+        y = df[(df['rho'] == rho) & (df['p'] == p)].nu.values.reshape(m,m)
+        z = df[(df['rho'] == rho) & (df['p'] == p)].survival.values.reshape(m,m)
+        survival_shading.append(z)
+        # Create a contour line to show where survival happens.
+        CS = ax[int(n/4)].contour(x,y,z, levels = [0.5], colors=('black',), linestyles=(ls,), linewidths=(2,))
+    
+    # Construct the legend
+    lines = [Line2D([0], [0], color='black', linewidth=2, linestyle=ls) for ls in ['solid', 'dotted', 'dashed', 'dashdot']]
+    labels = [r'$p = $' + str(p) for p in p_range]
+    ax[0].legend(lines, labels, loc='upper right')
+
+    # Shade between p = 0 and p = 1 lines. 
+    ax[0].contourf(x, y, survival_shading[0] | np.logical_not(survival_shading[3]), cmap=mpl.colors.ListedColormap(['lightgrey','white']))
+    ax[1].contourf(x, y, survival_shading[4] | np.logical_not(survival_shading[7]), cmap=mpl.colors.ListedColormap(['lightgrey','white']))
+
+    # Beautify the plot
+    ax[0].set_xlabel(r'$\beta$', fontsize=14); ax[0].set_ylabel(r'$\nu$', fontsize=14)
+    ax[1].set_xlabel(r'$\beta$', fontsize=14); ax[1].set_ylabel(r'$\nu$', fontsize=14)
+    ax[0].set_title(r'$\rho = 0$', fontsize=14); ax[1].set_title(r'$\rho = 0.5$', fontsize=14)
+
+    ax[0].text(0.04, 1.2, 'Persistence', rotation=0, fontsize=14)
+    ax[0].text(2, 2.7, 'Extinction', fontsize=14)
+
+    ax[1].text(0.04, 1.2, 'Persistence', rotation=0, fontsize=14)
+    ax[1].text(2, 2.7, 'Extinction', fontsize=14)
+
+    fig.savefig('many_stressor_comparison.pdf')
 
 if __name__ == '__main__':
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
+    args = parser.parse_args()
+    pool = multiprocessing.Pool(processes=args.ncores)
     main(pool)
