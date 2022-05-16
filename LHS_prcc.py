@@ -49,8 +49,8 @@ def main(pool):
     parm_list = LHS.random(n)
 
     # Order of parameters: gamma, K_expn, sigma, c, mu, w_expn, y_expn, b.
-    l_bounds = [0.001, 3, 0.8*0.25, 2.16, 0.116, -7, -7, 0.8]
-    u_bounds = [0.11, 5, 1.2*0.25, 3.24, 0.163, -5, -5, 1]
+    l_bounds = [0.0169, 3, 0.0538, 2.16, 0.1111, -7, -7, 0.8]
+    u_bounds = [0.1081, 5, 5, 3.24, 0.1667, -5, -5, 0.95]
     bounded_parm_list = qmc.scale(parm_list, l_bounds, u_bounds)
 
     # Run all parameter sets. 

@@ -17,8 +17,8 @@ def worker(obj):
 
     # Define the parameters that are fixed for this realization. 
     parm = {}
-    parm['gamma'] = 0.15; parm['b'] = 0.95; parm['K_expn'] = 4; parm['w_expn'] = -6
-    parm['c'] = 2.7; parm['sigma'] = 0.25; parm['y_expn'] = -6; parm['mu'] = 0.136
+    parm['gamma'] = 0.0625; parm['b'] = 0.875; parm['K_expn'] = 4; parm['w_expn'] = -6
+    parm['c'] = 2.7; parm['sigma'] = 0.2769; parm['y_expn'] = -6; parm['mu'] = 0.1356
     parm['auto'] = True; parm['phi_expn'] = 3.5
     parm['t0'] = 0; parm['t1'] = 180
 
@@ -26,7 +26,7 @@ def worker(obj):
     parm['beta'], parm['nu'], parm['rho'], parm['p'] = obj
 
     # Solve the ODEs with these parameters. Record evaluations the terminal populations (after 10 years).
-    num_years = 5; tsol = np.linspace(0, 180*num_years, num_years*100)
+    num_years = 10; tsol = np.linspace(0, 180*num_years, num_years*100)
     [H, FU, FI] = solve_ivp(fun=odes, t_span=[tsol.min(), tsol.max()], t_eval=[tsol[-1]], y0=[200, 50, 0], args=(parm,)).y
 
     return H + FU + FI
@@ -34,9 +34,9 @@ def worker(obj):
 def main(pool):
 
     # Define ranges for stress parameters beta and nu.  
-    m = 100
-    beta_range = np.linspace(0, 3, m)
-    nu_range = np.linspace(0.01, 4.5, m)
+    m = 70
+    beta_range = np.linspace(0, 1, m)
+    nu_range = np.linspace(0.01, 1, m)
     p_range = [0, 0.25, 0.75, 1]
     rho_range = [0, 0.5]
 
@@ -48,7 +48,7 @@ def main(pool):
     df['survival'] = 1*(df['term_pop'] > 5)
 
     # Iterate through rho and p values to make plot.
-    fig, ax = plt.subplots(1,2, figsize=(15, 10)); survival_shading = []
+    fig, ax = plt.subplots(1,2, figsize=(20, 10)); survival_shading = []
     for n, (rho, p, ls) in enumerate(zip([0]*4 + [0.5]*4, p_range*2, ['solid', 'dotted', 'dashed', 'dashdot']*2)):
 
         # Subset data to this value of rho and p. 
@@ -69,15 +69,15 @@ def main(pool):
     ax[1].contourf(x, y, survival_shading[4] | np.logical_not(survival_shading[7]), cmap=mpl.colors.ListedColormap(['lightgrey','white']))
 
     # Beautify the plot
-    ax[0].set_xlabel(r'$\beta$', fontsize=14); ax[0].set_ylabel(r'$\nu$', fontsize=14)
-    ax[1].set_xlabel(r'$\beta$', fontsize=14); ax[1].set_ylabel(r'$\nu$', fontsize=14)
-    ax[0].set_title(r'$\rho = 0$', fontsize=14); ax[1].set_title(r'$\rho = 0.5$', fontsize=14)
+    ax[0].set_xlabel(r'$\beta$', fontsize=18); ax[0].set_ylabel(r'$\nu$', fontsize=18)
+    ax[1].set_xlabel(r'$\beta$', fontsize=18); ax[1].set_ylabel(r'$\nu$', fontsize=18)
+    ax[0].set_title(r'$\rho = 0$', fontsize=18); ax[1].set_title(r'$\rho = 0.5$', fontsize=18)
 
-    ax[0].text(0.04, 1.2, 'Persistence', rotation=0, fontsize=14)
-    ax[0].text(2, 2.7, 'Extinction', fontsize=14)
+    ax[0].text(0.017, 0.15, 'Persistence', rotation=90, fontsize=14)
+    ax[0].text(0.5, 0.5, 'Extinction', fontsize=14)
 
-    ax[1].text(0.04, 1.2, 'Persistence', rotation=0, fontsize=14)
-    ax[1].text(2, 2.7, 'Extinction', fontsize=14)
+    ax[1].text(0.015, 0.1, 'Persistence', rotation=0, fontsize=14)
+    ax[1].text(0.5, 0.5, 'Extinction', fontsize=14)
 
     fig.savefig('many_stressor_comparison.pdf')
 
