@@ -52,7 +52,7 @@ def main(pool):
     print(df.shape[0], ending - starting)
     
     fig, ax = plt.subplots(1,1)
-    CS = ax.contourf(df['t0'].values.reshape(m,m), df['t1'].values.reshape(m,m), df['term_pop'].values.reshape(m,m), cmap='bone', levels=[1000*k for k in [0, 1, 2, 3, 5, 6, 7, 8, 9, 10]])
+    CS = ax.contourf(df['t0'].values.reshape(m,m), df['t1'].values.reshape(m,m), df['term_pop'].values.reshape(m,m), cmap='bone')
     cbar = fig.colorbar(CS)
 
     cbar.ax.set_ylabel('Five Year Population')

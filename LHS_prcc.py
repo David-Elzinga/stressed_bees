@@ -29,12 +29,12 @@ def worker(obj):
 
     # Measure the response varibles (population at 1 and 5 years, value of AAOF at 1 and 5 years)
     pop_one = H[0] + FU[0] + FI[0]; pop_five = H[1] + FU[1] + FI[1]
-    if pop_one < 100: # < 5 bees indicates an extinction, return nan for aaof.
+    if pop_one < 100: # < 100 bees indicates an extinction, return nan for aaof.
         aaof_one = np.nan
     else:
         aaof_one = H[0]/S[0]
     
-    if pop_five < 100: # < 5 bees indicates an extinction, return nan for aaof.
+    if pop_five < 100: # < 100 bees indicates an extinction, return nan for aaof.
         aaof_five = np.nan
     else:
         aaof_five = H[1]/S[1]
