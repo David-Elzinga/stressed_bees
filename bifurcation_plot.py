@@ -5,8 +5,8 @@ from bee_model import odes
 import matplotlib.gridspec as gridspec
 
 '''
-This code generates 2 pdf images. The first is the bifurcation plot, and the 
-second has time series pulled from parameter combinations that are 
+This code generates a single pdf with 3 images. The first is the bifurcation plot, and the 
+second/third have time series pulled from parameter combinations that are 
 highlighted on the bifurcation plot. 
 '''
 

@@ -10,6 +10,11 @@ from itertools import product
 from scipy.integrate import solve_ivp
 from bee_model import odes
 
+'''
+This code generates a single pdf comparing the characteristics of a stressors with two subplots (for 
+different recovery rates). 
+'''
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--ncores", type=int, help="number of cores", default=os.cpu_count() - 1)
 
@@ -34,7 +39,7 @@ def worker(obj):
 def main(pool):
 
     # Define ranges for stress parameters beta and nu.  
-    m = 70
+    m = 80
     beta_range = np.linspace(0, 1, m)
     nu_range = np.linspace(0.01, 1, m)
     p_range = [0, 0.25, 0.75, 1]
@@ -62,16 +67,16 @@ def main(pool):
     # Construct the legend
     lines = [Line2D([0], [0], color='black', linewidth=2, linestyle=ls) for ls in ['solid', 'dotted', 'dashed', 'dashdot']]
     labels = [r'$p = $' + str(p) for p in p_range]
-    ax[0].legend(lines, labels, loc='upper right')
+    ax[0].legend(lines, labels, loc='upper right', fontsize=18)
 
     # Shade between p = 0 and p = 1 lines. 
     ax[0].contourf(x, y, survival_shading[0] | np.logical_not(survival_shading[3]), cmap=mpl.colors.ListedColormap(['lightgrey','white']))
     ax[1].contourf(x, y, survival_shading[4] | np.logical_not(survival_shading[7]), cmap=mpl.colors.ListedColormap(['lightgrey','white']))
 
     # Beautify the plot
-    ax[0].set_xlabel(r'$\beta$', fontsize=18); ax[0].set_ylabel(r'$\nu$', fontsize=18)
-    ax[1].set_xlabel(r'$\beta$', fontsize=18); ax[1].set_ylabel(r'$\nu$', fontsize=18)
-    ax[0].set_title(r'$\rho = 0$', fontsize=18); ax[1].set_title(r'$\rho = 0.5$', fontsize=18)
+    ax[0].set_xlabel(r'$\beta$', fontsize=26); ax[0].set_ylabel(r'$\nu$', fontsize=28)
+    ax[1].set_xlabel(r'$\beta$', fontsize=26); ax[1].set_ylabel(r'$\nu$', fontsize=28)
+    ax[0].set_title(r'$\rho = 0$', fontsize=26); ax[1].set_title(r'$\rho = 0.5$', fontsize=28)
 
     ax[0].text(0.017, 0.15, 'Persistence', rotation=90, fontsize=14)
     ax[0].text(0.5, 0.5, 'Extinction', fontsize=14)
@@ -79,6 +84,8 @@ def main(pool):
     ax[1].text(0.015, 0.1, 'Persistence', rotation=0, fontsize=14)
     ax[1].text(0.5, 0.5, 'Extinction', fontsize=14)
 
+    ax[0].tick_params(axis='x', labelsize=18); ax[1].tick_params(axis='x', labelsize=18)
+    ax[0].tick_params(axis='y', labelsize=18); ax[1].tick_params(axis='y', labelsize=18)
     fig.savefig('many_stressor_comparison.pdf')
 
 if __name__ == '__main__':

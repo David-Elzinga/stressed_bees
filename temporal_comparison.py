@@ -9,6 +9,9 @@ from scipy.integrate import solve_ivp
 from bee_model import odes
 import time
 
+'''
+This code produces a single figure to compare the temporal application effects of a stressor. 
+'''
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--ncores", type=int, help="number of cores", default=os.cpu_count() - 1)
