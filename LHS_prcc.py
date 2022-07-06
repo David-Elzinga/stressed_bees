@@ -89,7 +89,7 @@ def main(pool):
         br1 = np.arange(len(prcc_point[m1]))
         br2 = [x + barWidth for x in br1]
 
-        # Make the bar plots plot. Legend depends on if we are making the plot for population or aaof.
+        # Make the( bar plots plot. Legend depends on if we are making the plot for population or aaof.
         edge_colors_m1 = ['red' if prcc_pval[m1][n] < 0.05 else 'black' for n in range(8)]
         edge_colors_m2 = ['red' if prcc_pval[m2][n] < 0.05 else 'black' for n in range(8)]
         plt.bar(br1, prcc_point[m1], color ='cyan', width = barWidth, yerr = np.array(prcc_conf_intv[m1]).T, capsize=8, error_kw = {'label':'95% CI'},
@@ -99,10 +99,11 @@ def main(pool):
 
         # Beautify
         plt.ylim(-1,1)
-        plt.ylabel('Partial Rank Correlation Coefficient', fontsize = 14)
+        plt.ylabel('Partial Rank Correlation Coefficient', fontsize = 24)
         plt.xticks([r + barWidth for r in range(len(prcc_point[m1]))],
-                [r'$\gamma$', r'$\log_{10}(K)$', r'$\sigma$', r'$c$', r'$\mu$', r'$\log_{10}(w)$', r'$\log_{10}(y)$', r'$b$'], fontsize=14, rotation=45)
-        plt.legend(fontsize=15)
+                [r'$\gamma$', r'$\log_{10}(K)$', r'$\sigma$', r'$c$', r'$\mu$', r'$\log_{10}(w)$', r'$\log_{10}(y)$', r'$b$'], fontsize=26, rotation=45)
+        plt.yticks(fontsize=18)
+        plt.legend(fontsize=18)
         plt.hlines(y=0,xmin=0,xmax=8, color='k')
         plt.savefig(name + '.pdf', bbox_inches='tight')
     
